@@ -37,12 +37,11 @@ void SandSimulator::initGrid()
     m_gridSizeU = static_cast<unsigned>(m_gridSizeF);
 
 
-    m_sand.setSize(sf::Vector2f(m_gridSizeF, m_gridSizeF));
-    m_sand.setFillColor(sf::Color(252,201,0));
 
     resetGrid();
 
 
+    m_sand.setSize(sf::Vector2f(m_gridSizeF, m_gridSizeF));
     m_tileSelector.setOutlineThickness(1);
     m_tileSelector.setOutlineColor(sf::Color::White);
     m_tileSelector.setSize(sf::Vector2f(m_gridSizeF, m_gridSizeF));
@@ -62,7 +61,10 @@ void SandSimulator::render(sf::RenderTarget &target)
         {
             if(m_currentMap[x][y] == 1)
             {
+
+                // NEW SF RECTANGLE HERE
                 m_sand.setPosition(x * m_gridSizeF, y * m_gridSizeF);
+                m_sand.setFillColor(randomiseColor());
                 target.draw(m_sand);
             }
 
@@ -81,12 +83,12 @@ void SandSimulator::renderUI(sf::RenderTarget &target)
 
 void SandSimulator::getInput()
 {
-    if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
+    if(sf::Mouse::isButtonPressed(sf::Mouse::Left) && m_mousePosGrid->x < mapSizeX && m_mousePosGrid->y < mapSizeY)
     {
         //m_currentMap[m_mousePosGrid->x][m_mousePosGrid->y] = 1;
         m_currentMap[m_mousePosGrid->x][m_mousePosGrid->y] = 1;
     }
-    if(sf::Mouse::isButtonPressed(sf::Mouse::Right))
+    if(sf::Mouse::isButtonPressed(sf::Mouse::Right)&& m_mousePosGrid->x < mapSizeX && m_mousePosGrid->y < mapSizeY)
     {
         //m_currentMap[m_mousePosGrid->x][m_mousePosGrid->y] = 0;
         m_currentMap[m_mousePosGrid->x][m_mousePosGrid->y] = 0;
@@ -186,6 +188,33 @@ void SandSimulator::simulate()
     }
 
     
+}
+
+sf::Color SandSimulator::randomiseColor()
+{
+    int ranColor = rand() % 5;
+    switch(ranColor)
+    {
+        case 0:
+            return sf::Color::Yellow;
+            break;
+        case 1:
+            return sf::Color(252,201,0);
+            break;
+        case 2:
+            return sf::Color(168,134,0);
+            break;
+        case 3:
+            return sf::Color(255,224,98);
+            break;
+        case 4:
+            return sf::Color(255,179,0);
+            break;
+        default:
+            return sf::Color::Yellow;
+            break;
+
+    }
 }
 
 void SandSimulator::setWindow(sf::RenderWindow &window)
