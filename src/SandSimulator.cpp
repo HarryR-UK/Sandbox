@@ -1,6 +1,4 @@
 #include "../include/SandSimulator.h"
-#include "SFML/Window/Keyboard.hpp"
-#include "SFML/Window/Mouse.hpp"
 
 SandSimulator::~SandSimulator()
 {
@@ -17,6 +15,7 @@ void SandSimulator::initVariables()
     m_window = nullptr;
     m_simDelay =0;
     m_isHeld = false;
+    m_selectionType = 1;
 
 }
 
@@ -41,11 +40,13 @@ void SandSimulator::initGrid()
     resetGrid();
 
 
-    m_sand.setSize(sf::Vector2f(m_gridSizeF, m_gridSizeF));
     m_tileSelector.setOutlineThickness(1);
     m_tileSelector.setOutlineColor(sf::Color::White);
     m_tileSelector.setSize(sf::Vector2f(m_gridSizeF, m_gridSizeF));
     m_tileSelector.setFillColor(sf::Color::Transparent);
+
+    m_sand.shape.setSize(sf::Vector2f(m_gridSizeF, m_gridSizeF));
+    m_water.shape.setSize(sf::Vector2f(m_gridSizeF, m_gridSizeF));
 }
 
 void SandSimulator::updateTileSelector()
@@ -63,9 +64,15 @@ void SandSimulator::render(sf::RenderTarget &target)
             {
 
                 // NEW SF RECTANGLE HERE
-                m_sand.setPosition(x * m_gridSizeF, y * m_gridSizeF);
-                m_sand.setFillColor(randomiseColor());
-                target.draw(m_sand);
+                m_sand.shape.setPosition(x * m_gridSizeF, y * m_gridSizeF);
+                m_sand.shape.setFillColor(randomiseColor());
+                target.draw(m_sand.shape);
+            }
+            if(m_currentMap[x][y] == 2)
+            {
+                m_water.shape.setPosition(x * m_gridSizeF, y * m_gridSizeF);
+                m_water.shape.setFillColor(sf::Color::Blue);
+                target.draw(m_water.shape);
             }
 
             m_swapMap[x][y] = m_currentMap[x][y];
@@ -86,12 +93,12 @@ void SandSimulator::getInput()
     if(sf::Mouse::isButtonPressed(sf::Mouse::Left) && m_mousePosGrid->x < mapSizeX && m_mousePosGrid->y < mapSizeY)
     {
         //m_currentMap[m_mousePosGrid->x][m_mousePosGrid->y] = 1;
-        m_currentMap[m_mousePosGrid->x][m_mousePosGrid->y] = 1;
+        m_currentMap[m_mousePosGrid->x][m_mousePosGrid->y] = m_selectionType;
     }
     if(sf::Mouse::isButtonPressed(sf::Mouse::Right)&& m_mousePosGrid->x < mapSizeX && m_mousePosGrid->y < mapSizeY)
     {
         //m_currentMap[m_mousePosGrid->x][m_mousePosGrid->y] = 0;
-        m_currentMap[m_mousePosGrid->x][m_mousePosGrid->y] = 0;
+        m_currentMap[m_mousePosGrid->x][m_mousePosGrid->y] = Particles::ParticleType::AIR;
     }
 
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::C))
@@ -105,7 +112,15 @@ void SandSimulator::getInput()
     else{
         m_isHeld = false;
     }
-    
+
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Num1))
+    {
+        m_selectionType = Particles::ParticleType::SAND;
+    }
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Num2))
+    {
+        m_selectionType = Particles::ParticleType::WATER;
+    }
 
 }
 
@@ -129,45 +144,106 @@ void SandSimulator::update(float deltaTime, int simDelay)
 void SandSimulator::moveSand(long unsigned int &x, long unsigned int &y)
 {
 
-    // check surroundings
-    if(y < mapSizeY - 1 && m_swapMap[x][y+1] == 0)
+    // check if water ABOVE FIRST
+    if(y > 0 && m_currentMap[x][y+1] == Particles::ParticleType::WATER)
     {
-        m_currentMap[x][y] = 0;
-        m_currentMap[x][y + 1] = 1;
+        m_currentMap[x][y+1] = Particles::ParticleType::SAND;
+        m_currentMap[x][y] = Particles::ParticleType::WATER;
 
     }
-    else if(y < mapSizeY - 1 && x > 0 && y > 0 && x < mapSizeX -1 && m_swapMap[x-1][y+1] == 0 && m_swapMap[x+1][y+1] == 0)
+    
+    if(y < mapSizeY - 1 && m_swapMap[x][y+1] == Particles::ParticleType::AIR)
+    {
+        m_currentMap[x][y] = Particles::ParticleType::AIR;
+        m_currentMap[x][y + 1] = Particles::ParticleType::SAND;
+
+    }
+    
+    else if(y < mapSizeY - 1 && x > 0 && y > 0 && x < mapSizeX -1 && 
+            m_swapMap[x-1][y+1] == Particles::ParticleType::AIR && m_swapMap[x+1][y+1] == Particles::ParticleType::AIR)
     {
         int direction = rand() % 2;
         switch(direction)
         {
             case 0:
-                m_currentMap[x][y] = 0;
-                m_currentMap[x-1][y+1] = 1;
+                m_currentMap[x][y] = Particles::ParticleType::AIR;
+                m_currentMap[x-1][y+1] = Particles::ParticleType::SAND;
                 break;
             case 1:
-                m_currentMap[x][y] = 0;
-                m_currentMap[x+1][y+1] = 1;
+                m_currentMap[x][y] = Particles::ParticleType::AIR;
+                m_currentMap[x+1][y+1] = Particles::ParticleType::SAND;
                 break;
             default:
                 break;
 
         }
     }
-    else if(x > 0 && m_swapMap[x-1][y+1] == 0)
+    else if(x > 0 && m_swapMap[x-1][y+1] == Particles::ParticleType::AIR)
     {
-        m_currentMap[x][y] = 0;
-        m_currentMap[x-1][y+1] = 1;
+        m_currentMap[x][y] = Particles::ParticleType::AIR;
+        m_currentMap[x-1][y+1] = Particles::ParticleType::SAND;
     }
-    else if(x < mapSizeX - 1 && m_currentMap[x+1][y+1] == 0)
+    else if(x < mapSizeX - 1 && m_currentMap[x+1][y+1] == Particles::ParticleType::AIR)
     {
-        m_currentMap[x][y] = 0;
-        m_currentMap[x+1][y+1] = 1;
+        m_currentMap[x][y] = Particles::ParticleType::AIR;
+        m_currentMap[x+1][y+1] = Particles::ParticleType::SAND;
     }
 
 }
 
+void SandSimulator::moveWater(long unsigned int &x,  long unsigned int &y)
+{
+    // check surroundings
+    if(y < mapSizeY - 1 && m_swapMap[x][y+1] == Particles::ParticleType::AIR)
+    {
+        m_currentMap[x][y] = Particles::ParticleType::AIR;
+        m_currentMap[x][y + 1] = Particles::ParticleType::WATER;
 
+    }
+    
+    if(y < mapSizeY - 1 && x > 0 && y > 0 && x < mapSizeX -1 && 
+            m_swapMap[x-1][y+1] == Particles::ParticleType::AIR && m_swapMap[x+1][y+1] == Particles::ParticleType::AIR)
+    {
+        int direction = rand() % 2;
+        switch(direction)
+        {
+            case 0:
+                m_currentMap[x][y] = Particles::ParticleType::AIR;
+                m_currentMap[x-1][y+1] = Particles::ParticleType::WATER;
+                break;
+            case 1:
+                m_currentMap[x][y] = Particles::ParticleType::AIR;
+                m_currentMap[x+1][y+1] = Particles::ParticleType::WATER;
+                break;
+            default:
+                break;
+
+        }
+    }
+    else if(x > 0 && m_swapMap[x-1][y+1] == Particles::ParticleType::AIR)
+    {
+        m_currentMap[x][y] = Particles::ParticleType::AIR;
+        m_currentMap[x-1][y+1] = Particles::ParticleType::WATER;
+    }
+    else if(x < mapSizeX - 1 && m_currentMap[x+1][y+1] == Particles::ParticleType::AIR)
+    {
+        m_currentMap[x][y] = Particles::ParticleType::AIR;
+        m_currentMap[x+1][y+1] = Particles::ParticleType::WATER;
+    }
+    else if(x < mapSizeX - 1 && m_currentMap[x+1][y] == Particles::ParticleType::AIR)
+    {
+        m_currentMap[x][y] = Particles::ParticleType::AIR;
+        m_currentMap[x+1][y] = Particles::ParticleType::WATER;
+    }
+    else if(x > 0 && m_currentMap[x-1][y] == Particles::ParticleType::AIR)
+    {
+        m_currentMap[x][y] = Particles::ParticleType::AIR;
+        m_currentMap[x-1][y] = Particles::ParticleType::WATER;
+    }
+
+    
+    
+}
 
 void SandSimulator::simulate()
 {
@@ -178,12 +254,23 @@ void SandSimulator::simulate()
         {
             for(long unsigned int y = 0; y < mapSizeY -1; ++y)
             {
-                if(m_swapMap[x][y] == 1)
+                switch (m_swapMap[x][y]) 
                 {
-                    moveSand(x,y);
+                    case Particles::ParticleType::AIR:
+                        break;
+                    case Particles::ParticleType::SAND:
+                        moveSand(x,y);
+                        break;
+                    case Particles::ParticleType::WATER:
+                        moveWater(x,y);
+                        break;
+                    default:
+                        break;
                 }
+                
             }
         }
+        
 
     }
 

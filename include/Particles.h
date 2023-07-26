@@ -9,14 +9,30 @@ namespace Particles{
     
     struct Sand
     {
-        sf::RectangleShape m_shape;
-        float m_mass = 0.2f;
+        sf::RectangleShape shape;
+        float m_mass = 0.02f;
     };
 
+    struct Water
+    {
+        sf::RectangleShape shape;
+        float m_mass = 0.05f;
+    };
     struct Stone
     {
-        sf::RectangleShape m_shape;
+        sf::RectangleShape shape;
         float m_mass = 1.f;
+    };
+
+
+
+    enum ParticleType
+    {
+        AIR = 0,
+        SAND = 1,
+        WATER = 2,
+        STONE = 3
+
     };
 };
 

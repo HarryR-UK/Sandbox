@@ -1,8 +1,5 @@
 #ifndef SANDSIMULATOR_H
 #define SANDSIMULATOR_H
-#include "SFML/Graphics/RectangleShape.hpp"
-#include "SFML/Graphics/RenderTarget.hpp"
-#include <vector>
 #pragma once
 
 #include <array>
@@ -36,7 +33,10 @@ class SandSimulator
         unsigned long int m_swapMap[mapSizeX][mapSizeY];
 
         // Particles
-        
+        // 1
+        Particles::Sand m_sand;
+        // 2
+        Particles::Water m_water;
 
         sf::RenderWindow* m_window;
         
@@ -45,7 +45,8 @@ class SandSimulator
         std::thread m_simThread;
 
         sf::RectangleShape m_tileSelector;
-        sf::RectangleShape m_sand;
+
+        int m_selectionType;
 
 
         int m_simDelay;
@@ -79,6 +80,7 @@ class SandSimulator
         void resetGrid();
 
         void moveSand(long unsigned int &x, long unsigned int &y);
+        void moveWater(long unsigned int &x, long unsigned int &y);
 
         sf::Color randomiseColor();
         
