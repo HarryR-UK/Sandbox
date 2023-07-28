@@ -61,7 +61,7 @@ void Game::initWindow()
     m_videoMode.height = WINDOW_HEIGHT;
     m_videoMode.width = WINDOW_WIDTH;
 
-    m_window = new sf::RenderWindow(m_videoMode, "GAME OF LIFE!", sf::Style::Close | sf::Style::None);
+    m_window = new sf::RenderWindow(m_videoMode, "SAND!", sf::Style::Close | sf::Style::None);
 
 
 
